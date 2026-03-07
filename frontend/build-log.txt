@@ -1,0 +1,31 @@
+STDOUT:
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32m✓[39m 20 modules transformed.
+
+
+STDERR:
+[31m✗[39m Build failed in 654ms
+[31merror during build:
+[31m[vite:esbuild] Transform failed with 1 error:
+D:/infotech-lanuch/auto-refer/frontend/src/pages/AdminPage.jsx:34:35: ERROR: Expected "}" but found "s"[31m
+file: [36mD:/infotech-lanuch/auto-refer/frontend/src/pages/AdminPage.jsx:34:35[31m
+[33m
+[33mExpected "}" but found "s"[33m
+32 |  
+33 |  const fraudQueue = [
+34 |    { id: 'REF-001', referrer: 'John's Pizza', referee: 'Taco Fiesta', fraudScore: 82, reason: 'Same IP address, simila...
+   |                                     ^
+35 |    { id: 'REF-002', referrer: 'Burger Haven', referee: 'Wings & Things', fraudScore: 65, reason: 'Rapid signup pattern...
+36 |    { id: 'REF-003', referrer: 'Sushi Master', referee: 'Ramen House', fraudScore: 91, reason: 'Payment refunded within...
+[31m
+    at failureErrorWithLog (D:\infotech-lanuch\auto-refer\frontend\node_modules\esbuild\lib\main.js:1467:15)
+    at D:\infotech-lanuch\auto-refer\frontend\node_modules\esbuild\lib\main.js:736:50
+    at responseCallbacks.<computed> (D:\infotech-lanuch\auto-refer\frontend\node_modules\esbuild\lib\main.js:603:9)
+    at handleIncomingPacket (D:\infotech-lanuch\auto-refer\frontend\node_modules\esbuild\lib\main.js:658:12)
+    at Socket.readFromStdout (D:\infotech-lanuch\auto-refer\frontend\node_modules\esbuild\lib\main.js:581:7)
+    at Socket.emit (node:events:524:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)[39m

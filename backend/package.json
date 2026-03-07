@@ -1,0 +1,28 @@
+{
+  "name": "itl-autopilot-backend",
+  "version": "2.0.0",
+  "description": "ITL AutoPilot™ Backend — QR Review Engine + AutoRefer + AI Voice + Identity Vault (Neon PostgreSQL)",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "seed": "node -e \"require('dotenv').config(); const {initializeDatabase} = require('./src/db/init'); const {seedDatabase} = require('./src/db/seed'); (async () => { await initializeDatabase(); await seedDatabase(); process.exit(0); })();\""
+  },
+  "dependencies": {
+    "@google/genai": "^1.43.0",
+    "@neondatabase/serverless": "^1.0.2",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^5.2.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "luxon": "^3.7.2",
+    "morgan": "^1.10.0",
+    "node-cron": "^3.0.3",
+    "nodemon": "^3.1.14",
+    "postgres": "^3.4.8",
+    "undici": "^7.22.0",
+    "uuid": "^11.1.0"
+  }
+}
