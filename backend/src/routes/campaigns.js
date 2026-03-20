@@ -31,9 +31,7 @@ router.get('/', authenticate, async (req, res, next) => {
       businessId: c.business_id,
       locationId: c.location_id,
       name: c.name,
-      placeId: c.place_id,
       googleReviewUrl: c.google_review_url,
-      timezone: c.timezone,
       rushHours: JSON.parse(c.rush_hours || '{}'),
       thankWindowHours: c.thank_window_hours,
       enableVoiceLinkage: !!c.enable_voice_linkage,
@@ -81,9 +79,7 @@ router.get('/:id', authenticate, async (req, res, next) => {
         businessId: c.business_id,
         locationId: c.location_id,
         name: c.name,
-        placeId: c.place_id,
         googleReviewUrl: c.google_review_url,
-        timezone: c.timezone,
         rushHours: JSON.parse(c.rush_hours || '{}'),
         thankWindowHours: c.thank_window_hours,
         enableVoiceLinkage: !!c.enable_voice_linkage,
@@ -110,9 +106,9 @@ router.get('/:id', authenticate, async (req, res, next) => {
 // ─────────────────────────────────────────────────
 router.post('/', authenticate, async (req, res, next) => {
   try {
-    let {
-      name, businessId, locationId, placeId, googleReviewUrl,
-      timezone, rushHours, thankWindowHours,
+    const {
+      name, businessId, locationId, googleReviewUrl,
+      rushHours, thankWindowHours,
       enableVoiceLinkage, enableInfluencerCapture, enableIncentives, enableReferrals,
       captureName, capturePhone, captureEmail, captureSocial, requireConsent,
     } = req.body;
@@ -139,13 +135,13 @@ router.post('/', authenticate, async (req, res, next) => {
       await sql`
         INSERT INTO campaigns (
           campaign_id, tenant_id, business_id, location_id, name, 
-          place_id, google_review_url, timezone, rush_hours, thank_window_hours, 
+          google_review_url, rush_hours, thank_window_hours, 
           enable_voice_linkage, enable_influencer_capture, enable_incentives, enable_referrals,
           capture_name, capture_phone, capture_email, capture_social, require_consent
         )
         VALUES (
           ${campaignId}, ${req.user.tenant_id}, ${businessId}, ${locationId}, ${name}, 
-          ${placeId || null}, ${googleReviewUrl || null}, ${timezone || 'Asia/Kolkata'}, 
+          ${googleReviewUrl || null}, 
           ${JSON.stringify(rushHours || {})}, ${thankWindowHours || 24}, 
           ${!!enableVoiceLinkage}, ${!!enableInfluencerCapture}, ${!!enableIncentives}, ${!!enableReferrals},
           ${captureName !== undefined ? !!captureName : true}, ${capturePhone !== undefined ? !!capturePhone : true}, 
@@ -185,9 +181,7 @@ router.post('/', authenticate, async (req, res, next) => {
         businessId: c.business_id,
         locationId: c.location_id,
         name: c.name,
-        placeId: c.place_id,
         googleReviewUrl: c.google_review_url,
-        timezone: c.timezone,
         rushHours: JSON.parse(c.rush_hours || '{}'),
         thankWindowHours: c.thank_window_hours,
         enableVoiceLinkage: !!c.enable_voice_linkage,
@@ -222,8 +216,8 @@ router.put('/:id', authenticate, async (req, res, next) => {
     }
 
     const {
-      name, businessId, locationId, placeId, googleReviewUrl,
-      timezone, rushHours, thankWindowHours,
+      name, businessId, locationId, googleReviewUrl,
+      rushHours, thankWindowHours,
       enableVoiceLinkage, enableInfluencerCapture, enableIncentives, enableReferrals,
       captureName, capturePhone, captureEmail, captureSocial, requireConsent,
     } = req.body;
@@ -233,9 +227,7 @@ router.put('/:id', authenticate, async (req, res, next) => {
         name = COALESCE(${name || null}, name),
         business_id = COALESCE(${businessId || null}, business_id),
         location_id = COALESCE(${locationId || null}, location_id),
-        place_id = COALESCE(${placeId || null}, place_id),
         google_review_url = COALESCE(${googleReviewUrl || null}, google_review_url),
-        timezone = COALESCE(${timezone || null}, timezone),
         rush_hours = COALESCE(${rushHours ? JSON.stringify(rushHours) : null}, rush_hours),
         thank_window_hours = COALESCE(${thankWindowHours || null}, thank_window_hours),
         enable_voice_linkage = COALESCE(${enableVoiceLinkage !== undefined ? !!enableVoiceLinkage : null}, enable_voice_linkage),
@@ -264,9 +256,7 @@ router.put('/:id', authenticate, async (req, res, next) => {
         businessId: c.business_id,
         locationId: c.location_id,
         name: c.name,
-        placeId: c.place_id,
         googleReviewUrl: c.google_review_url,
-        timezone: c.timezone,
         rushHours: JSON.parse(c.rush_hours || '{}'),
         thankWindowHours: c.thank_window_hours,
         enableVoiceLinkage: !!c.enable_voice_linkage,
@@ -291,7 +281,7 @@ router.put('/:id', authenticate, async (req, res, next) => {
 // ─────────────────────────────────────────────────
 // DELETE /api/campaigns/:id — Delete campaign
 // ─────────────────────────────────────────────────
-router.delete('/:id', authenticate, authorize('admin', 'super_admin'), async (req, res, next) => {
+router.delete('/:id', authenticate, async (req, res, next) => {
   try {
     const sql = getSql();
     const existing = await sql`SELECT * FROM campaigns WHERE campaign_id = ${req.params.id} AND tenant_id = ${req.user.tenant_id}`;

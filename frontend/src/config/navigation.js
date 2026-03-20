@@ -16,6 +16,7 @@ import {
   Volume2,
   PhoneCall,
   Layers,
+  Wand2,
 } from 'lucide-react';
 
 export const ADMIN_NAV_CONFIG = [
@@ -23,6 +24,7 @@ export const ADMIN_NAV_CONFIG = [
     label: 'Overview',
     items: [
       { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+      { to: '/ai-engine', icon: Wand2, label: 'AI Engine' },
     ],
   },
   {
@@ -64,6 +66,7 @@ export const USER_NAV_CONFIG = [
     label: 'My Account',
     items: [
       { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+      { to: '/ai-engine', icon: Wand2, label: 'AI Engine' },
     ],
   },
   {

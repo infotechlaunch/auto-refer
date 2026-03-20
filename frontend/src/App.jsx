@@ -15,7 +15,9 @@ import SettingsPage from './pages/SettingsPage';
 import PublicLandingPage from './pages/PublicLandingPage';
 import VoiceThankYouPage from './pages/VoiceThankYouPage';
 import IncentivesPage from './pages/IncentivesPage';
+import AIEnginePage from './pages/AIEnginePage';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import AIChatbot from './components/shared/AIChatbot';
 
 // Auth Pages
@@ -40,7 +42,6 @@ function AppLayout({ children }) {
         <main style={{ flex: 1 }}>
           {children}
         </main>
-        <AIChatbot />
       </div>
     </div>
   );
@@ -62,9 +63,10 @@ function DashboardLayout() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <Routes>
+    <ThemeProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <Routes>
           {/* Public Auth Routes */}
           <Route path="/login" element={<UserLoginPage />} />
           <Route path="/register" element={<UserRegisterPage />} />
@@ -77,6 +79,7 @@ function App() {
           {/* Protected Dashboard Routes */}
           <Route element={<DashboardLayout />}>
             <Route path="/" element={<DashboardPage />} />
+            <Route path="/ai-engine" element={<AIEnginePage />} />
             <Route path="/campaigns" element={<CampaignsPage />} />
             <Route path="/qr-codes" element={<QrCodesPage />} />
             <Route path="/review-intents" element={<ReviewIntentsPage />} />
@@ -90,9 +93,11 @@ function App() {
             <Route path="/voice-thank-you" element={<VoiceThankYouPage />} />
             <Route path="/incentives" element={<IncentivesPage />} />
           </Route>
-        </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+            </Routes>
+            <AIChatbot />
+          </AuthProvider>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 

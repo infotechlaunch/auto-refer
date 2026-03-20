@@ -8,7 +8,7 @@ import {
 import StatusBadge from '../components/shared/StatusBadge';
 import Modal from '../components/shared/Modal';
 import { campaignsApi, qrCodesApi } from '../lib/api';
-import { formatDateTime } from '../lib/utils';
+import { formatDateTime, formatReadable } from '../lib/utils';
 
 function ToggleChip({ label, active }) {
   return (
@@ -49,8 +49,6 @@ export default function CampaignsPage() {
   const initialForm = {
     name: '',
     googleReviewUrl: '',
-    placeId: '',
-    timezone: 'Asia/Kolkata',
     thankWindowHours: 24,
     enableVoiceLinkage: true,
     enableInfluencerCapture: false,
@@ -86,7 +84,7 @@ export default function CampaignsPage() {
   const getQrCount = (campaignId) => qrCodes.filter(q => q.campaignId === campaignId && q.active).length;
 
   const handleCreateCampaign = async () => {
-    if (!formData.name) return alert('Restaurant Name is required');
+    if (!formData.name) return alert('Business Name is required');
     
     setIsSubmitting(true);
     try {
@@ -123,12 +121,26 @@ export default function CampaignsPage() {
     }
   };
 
+  const handleDeleteCampaign = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this campaign? This will also remove associated QR codes.')) return;
+    
+    setIsSubmitting(true);
+    try {
+      await campaignsApi.delete(id);
+      const campRes = await campaignsApi.list();
+      setCampaigns(campRes.data);
+      setSelectedCampaign(null);
+    } catch (err) {
+      alert('Error deleting campaign: ' + err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const openEdit = (campaign) => {
     setFormData({
       name: campaign.name,
       googleReviewUrl: campaign.googleReviewUrl || '',
-      placeId: campaign.placeId || '',
-      timezone: campaign.timezone,
       thankWindowHours: campaign.thankWindowHours,
       enableVoiceLinkage: campaign.enableVoiceLinkage,
       enableInfluencerCapture: campaign.enableInfluencerCapture,
@@ -300,10 +312,10 @@ export default function CampaignsPage() {
               <div style={{ padding: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
                   <div style={{ flex: 1 }}>
-                    <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>{campaign.name}</h3>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>{formatReadable(campaign.name)}</h3>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                       <MapPin size={12} />
-                      {campaign.timezone} · {campaign.locationId}
+                      {formatReadable(campaign.locationId)}
                     </div>
                   </div>
                   <div style={{ width: 40, height: 40, borderRadius: 'var(--radius-md)', background: 'rgba(99, 102, 241, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--brand-primary-light)' }}>
@@ -337,6 +349,14 @@ export default function CampaignsPage() {
                   <button className="btn btn-ghost btn-icon btn-sm" title="View QR Codes"><QrCode size={14} /></button>
                   <button className="btn btn-ghost btn-icon btn-sm" title="Edit Campaign" onClick={(e) => { e.stopPropagation(); openEdit(campaign); }}><Edit size={14} /></button>
                   <button className="btn btn-ghost btn-icon btn-sm" title="Open Google Review Link" onClick={(e) => { e.stopPropagation(); window.open(campaign.googleReviewUrl); }}><ExternalLink size={14} /></button>
+                  <button 
+                    className="btn btn-ghost btn-icon btn-sm text-danger" 
+                    title="Delete Campaign" 
+                    onClick={(e) => { e.stopPropagation(); handleDeleteCampaign(campaign.campaignId); }}
+                    style={{ color: 'var(--brand-danger)' }}
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </div>
               </div>
             </motion.div>
@@ -348,7 +368,7 @@ export default function CampaignsPage() {
       <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Create New Campaign" maxWidth={640}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
           <div className="input-group">
-            <label>Restaurant Name</label>
+            <label>Business Name</label>
             <input 
               className="input" 
               placeholder="e.g., Mario's Italian Kitchen" 
@@ -358,7 +378,7 @@ export default function CampaignsPage() {
           </div>
 
           <div className="input-group">
-            <label>Google Review URL</label>
+            <label>Business URL</label>
             <input 
               className="input" 
               placeholder="https://g.page/r/your-business/review" 
@@ -367,32 +387,7 @@ export default function CampaignsPage() {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 'var(--space-md)' }}>
-            <div className="input-group">
-              <label>Google Place ID</label>
-              <input 
-                className="input" 
-                placeholder="e.g. ChIJN1t_tDeuEmsRUte9ST-u1OM" 
-                value={formData.placeId}
-                onChange={e => updateFormData('placeId', e.target.value)}
-              />
-            </div>
-            <div className="input-group">
-              <label>Timezone</label>
-              <select 
-                className="input" 
-                value={formData.timezone}
-                onChange={e => updateFormData('timezone', e.target.value)}
-                style={{ cursor: 'pointer' }}
-              >
-                <option value="Asia/Kolkata">🇮🇳 India (IST)</option>
-                <option value="America/New_York">🇺🇸 New York (EST)</option>
-                <option value="America/Los_Angeles">🇺🇸 Los Angeles (PST)</option>
-                <option value="Europe/London">🇬🇧 London (GMT)</option>
-                <option value="UTC">🌐 UTC</option>
-              </select>
-            </div>
-          </div>
+
 
           <div style={{ 
             display: 'grid', 
@@ -403,41 +398,35 @@ export default function CampaignsPage() {
             borderRadius: 'var(--radius-lg)',
             border: '1px solid var(--border-subtle)'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div className="input-group" style={{ marginBottom: 0, flex: 1, maxWidth: '200px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Clock size={14} /> Thank You Window
-                </label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <input 
-                    className="input" 
-                    type="number" 
-                    value={formData.thankWindowHours}
-                    onChange={e => updateFormData('thankWindowHours', parseInt(e.target.value))}
-                    style={{ width: 80 }}
-                  />
-                  <span style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>hours</span>
-                </div>
+            <div className="input-group" style={{ marginBottom: 0 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Clock size={14} /> Thank You Window
+              </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input 
+                  className="input" 
+                  type="number" 
+                  value={formData.thankWindowHours}
+                  onChange={e => updateFormData('thankWindowHours', parseInt(e.target.value))}
+                  style={{ width: 80 }}
+                />
+                <span style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>hours</span>
               </div>
+            </div>
 
-              <div style={{ flex: 1 }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8125rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8 }}>
-                  <Clock size={14} /> Rush Hours
-                </label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: '0.75rem', width: 40, color: 'var(--text-muted)' }}>Lunch</span>
-                    <input className="input input-sm" type="time" value={formData.rushHours.lunch[0]} onChange={e => updateRushHour('lunch', 'start', e.target.value)} />
+            <div className="input-group" style={{ marginBottom: 0 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8125rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8 }}>
+                <Clock size={14} /> Rush Hours
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12 }}>
+                {Object.entries(formData.rushHours).map(([period, times]) => (
+                  <div key={period} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: '0.75rem', width: 80, color: 'var(--text-muted)', textTransform: 'capitalize' }}>{period}</span>
+                    <input className="input input-sm" type="time" value={times[0]} onChange={e => updateRushHour(period, 'start', e.target.value)} />
                     <span style={{ opacity: 0.3 }}>–</span>
-                    <input className="input input-sm" type="time" value={formData.rushHours.lunch[1]} onChange={e => updateRushHour('lunch', 'end', e.target.value)} />
+                    <input className="input input-sm" type="time" value={times[1]} onChange={e => updateRushHour(period, 'end', e.target.value)} />
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: '0.75rem', width: 40, color: 'var(--text-muted)' }}>Dinner</span>
-                    <input className="input input-sm" type="time" value={formData.rushHours.dinner[0]} onChange={e => updateRushHour('dinner', 'start', e.target.value)} />
-                    <span style={{ opacity: 0.3 }}>–</span>
-                    <input className="input input-sm" type="time" value={formData.rushHours.dinner[1]} onChange={e => updateRushHour('dinner', 'end', e.target.value)} />
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>
@@ -495,7 +484,7 @@ export default function CampaignsPage() {
       <Modal isOpen={showEdit} onClose={() => setShowEdit(false)} title="Edit Campaign" maxWidth={640}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
           <div className="input-group">
-            <label>Restaurant Name</label>
+            <label>Business Name</label>
             <input 
               className="input" 
               value={formData.name}
@@ -510,6 +499,48 @@ export default function CampaignsPage() {
               value={formData.googleReviewUrl}
               onChange={e => updateFormData('googleReviewUrl', e.target.value)}
             />
+          </div>
+
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: '1fr', 
+            gap: 'var(--space-md)',
+            padding: 'var(--space-md)',
+            background: 'rgba(255, 255, 255, 0.02)',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--border-subtle)'
+          }}>
+            <div className="input-group" style={{ marginBottom: 0 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Clock size={14} /> Thank You Window
+              </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input 
+                  className="input" 
+                  type="number" 
+                  value={formData.thankWindowHours}
+                  onChange={e => updateFormData('thankWindowHours', parseInt(e.target.value))}
+                  style={{ width: 80 }}
+                />
+                <span style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>hours</span>
+              </div>
+            </div>
+
+            <div className="input-group" style={{ marginBottom: 0 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8125rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8 }}>
+                <Clock size={14} /> Rush Hours
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12 }}>
+                {Object.entries(formData.rushHours).map(([period, times]) => (
+                  <div key={period} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: '0.75rem', width: 80, color: 'var(--text-muted)', textTransform: 'capitalize' }}>{period}</span>
+                    <input className="input input-sm" type="time" value={times[0]} onChange={e => updateRushHour(period, 'start', e.target.value)} />
+                    <span style={{ opacity: 0.3 }}>–</span>
+                    <input className="input input-sm" type="time" value={times[1]} onChange={e => updateRushHour(period, 'end', e.target.value)} />
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           <LandingPageBuilder />
@@ -564,7 +595,7 @@ export default function CampaignsPage() {
       <Modal
         isOpen={!!selectedCampaign && !showEdit}
         onClose={() => setSelectedCampaign(null)}
-        title={selectedCampaign?.name || ''}
+        title={formatReadable(selectedCampaign?.name) || ''}
         maxWidth={700}
       >
         {selectedCampaign && (
@@ -579,7 +610,7 @@ export default function CampaignsPage() {
               <div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 4 }}>Business</div>
                 <div style={{ fontSize: '0.8125rem', color: 'var(--text-primary)' }}>
-                  {selectedCampaign.businessId}
+                  {formatReadable(selectedCampaign.businessId)}
                 </div>
               </div>
               <div>
@@ -588,22 +619,22 @@ export default function CampaignsPage() {
                   {selectedCampaign.googleReviewUrl}
                 </a>
               </div>
-              <div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 4 }}>Timezone</div>
-                <div style={{ fontSize: '0.8125rem', color: 'var(--text-primary)' }}>
-                  {selectedCampaign.timezone}
-                </div>
-              </div>
+
             </div>
 
             <div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 6 }}>Rush Hours</div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {Object.entries(selectedCampaign.rushHours).map(([slot, [start, end]]) => (
-                  <span key={slot} className="badge badge-info">
-                    {slot}: {start}–{end}
-                  </span>
-                ))}
+                {selectedCampaign.rushHours && typeof selectedCampaign.rushHours === 'object' && 
+                  Object.entries(selectedCampaign.rushHours).map(([slot, times]) => {
+                    const [start, end] = Array.isArray(times) ? times : [times?.start || '', times?.end || ''];
+                    return (
+                      <span key={slot} className="badge badge-info">
+                        {slot}: {start}–{end}
+                      </span>
+                    );
+                  })
+                }
               </div>
             </div>
 
@@ -634,9 +665,13 @@ export default function CampaignsPage() {
                 <Edit size={14} />
                 Edit
               </button>
-              <button className="btn btn-danger">
+              <button 
+                className="btn btn-danger" 
+                onClick={() => handleDeleteCampaign(selectedCampaign.campaignId)}
+                disabled={isSubmitting}
+              >
                 <Trash2 size={14} />
-                Delete
+                {isSubmitting ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>

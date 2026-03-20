@@ -100,3 +100,17 @@ export function getStatusBadge(status) {
   };
   return map[status] || 'badge-neutral';
 }
+
+/**
+ * Format string to be readable (remove underscores, title case)
+ */
+export function formatReadable(str) {
+  if (!str) return '';
+  // Remove common prefixes if they exist
+  const cleaned = str.replace(/^(bus_|loc_|cam_)/i, '');
+  return cleaned
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+

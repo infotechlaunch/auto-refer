@@ -347,6 +347,8 @@ async function initializeDatabase() {
       campaign_id       TEXT REFERENCES campaigns(campaign_id) ON DELETE SET NULL,
       review_intent_id  TEXT REFERENCES review_intents(review_intent_id) ON DELETE SET NULL,
       customer_name     TEXT,
+      customer_phone    TEXT,
+      customer_email    TEXT,
       incentive_type    TEXT NOT NULL CHECK(incentive_type IN ('percent','fixed','freebie')),
       incentive_value   TEXT NOT NULL,
       send_method       TEXT DEFAULT 'manual' CHECK(send_method IN ('sms','email','manual','auto')),
@@ -386,6 +388,33 @@ async function initializeDatabase() {
     );
   `;
   await sql`CREATE INDEX IF NOT EXISTS idx_referral_rewards_referral ON referral_rewards(referral_id);`;
+
+  // ═══════════════════════════════════════════════
+  // SYSTEM SETTINGS TABLE
+  // One row per tenant — all toggles and config values.
+  // ═══════════════════════════════════════════════
+  await sql`
+    CREATE TABLE IF NOT EXISTS system_settings (
+      tenant_id                            TEXT PRIMARY KEY,
+      system_enabled                       BOOLEAN DEFAULT true,
+      autoreferrer_engine_enabled          BOOLEAN DEFAULT true,
+      voice_linkage_enabled                BOOLEAN DEFAULT true,
+      incentive_delivery_enabled           BOOLEAN DEFAULT true,
+      device_fingerprinting_enabled        BOOLEAN DEFAULT true,
+      ip_velocity_detection_enabled        BOOLEAN DEFAULT true,
+      self_referral_blocking_enabled       BOOLEAN DEFAULT true,
+      disposable_email_detection_enabled   BOOLEAN DEFAULT true,
+      auto_block_threshold                 INTEGER DEFAULT 90,
+      hold_review_threshold                INTEGER DEFAULT 50,
+      fraud_alert_emails_enabled           BOOLEAN DEFAULT true,
+      payout_request_notifications_enabled BOOLEAN DEFAULT true,
+      daily_summary_digest_enabled         BOOLEAN DEFAULT false,
+      stripe_webhook_secret                TEXT DEFAULT '',
+      zapier_webhook_url                   TEXT DEFAULT '',
+      google_places_api_key                TEXT DEFAULT '',
+      updated_at                           TIMESTAMPTZ DEFAULT NOW()
+    );
+  `;
   await sql`CREATE INDEX IF NOT EXISTS idx_referral_rewards_status ON referral_rewards(status);`;
   await sql`CREATE INDEX IF NOT EXISTS idx_referral_rewards_user ON referral_rewards(referrer_user_id);`;
 

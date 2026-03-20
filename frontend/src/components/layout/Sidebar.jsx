@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { ADMIN_NAV_CONFIG, USER_NAV_CONFIG } from '../../config/navigation';
+import logo from '../../assets/main-logos/logo.svg';
 
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
@@ -44,16 +45,14 @@ export default function Sidebar() {
         borderBottom: '1px solid var(--border-subtle)',
       }}>
         <div style={{
-          width: 36,
-          height: 36,
-          borderRadius: 10,
-          background: 'linear-gradient(135deg, var(--brand-primary), var(--brand-secondary))',
+          width: 48,
+          height: 48,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           flexShrink: 0,
         }}>
-          <Zap size={20} color="white" />
+          <img src={logo} alt="AutoRefer Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
         </div>
         <AnimatePresence>
           {!collapsed && (

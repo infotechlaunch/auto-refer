@@ -56,20 +56,51 @@ function isRushHour(rushHoursJson, timezone = 'America/New_York') {
     const [h, m] = timeStr.split(':').map(Number);
     const currentMinutes = h * 60 + m;
 
-    const days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
-    const dayKey = days[now.toLocaleDateString('en-US', { timeZone: timezone, weekday: 'long' })
-      ? new Date(now.toLocaleDateString('en-US', { timeZone: timezone })).getDay()
-      : now.getDay()];
+    /**
+     * The app supports two formats:
+     * 1. Day-based (future proof): { "monday": [{start, end}], ... }
+     * 2. Period-based (current): { "Lunch Time": ["11:30", "14:30"], ... }
+     */
 
-    const slots = rushHours[dayKey] || [];
-    return slots.some(slot => {
-      const [startH, startM] = slot.start.split(':').map(Number);
-      const [endH, endM]     = slot.end.split(':').map(Number);
+    // Check if it's the period-based format (values are arrays or have start/end)
+    const periods = Object.values(rushHours);
+    
+    for (const slot of periods) {
+      let startH, startM, endH, endM;
+
+      if (Array.isArray(slot)) {
+        // Format: ["11:30", "14:30"]
+        [startH, startM] = slot[0].split(':').map(Number);
+        [endH, endM]     = slot[1].split(':').map(Number);
+      } else if (slot.start && slot.end) {
+        // Format: { start: "11:30", end: "14:30" }
+        [startH, startM] = slot.start.split(':').map(Number);
+        [endH, endM]     = slot.end.split(':').map(Number);
+      } else {
+        continue;
+      }
+
       const startMin = startH * 60 + startM;
       const endMin   = endH   * 60 + endM;
-      return currentMinutes >= startMin && currentMinutes <= endMin;
+
+      if (currentMinutes >= startMin && currentMinutes <= endMin) {
+        return true;
+      }
+    }
+
+    // Also check for day-based format if still not found
+    const days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+    const dayIndex = new Date(now.toLocaleDateString('en-US', { timeZone: timezone })).getDay();
+    const dayKey = days[dayIndex];
+    const daySlots = rushHours[dayKey] || [];
+    
+    return daySlots.some(slot => {
+      const [sh, sm] = slot.start.split(':').map(Number);
+      const [eh, em] = slot.end.split(':').map(Number);
+      return currentMinutes >= (sh * 60 + sm) && currentMinutes <= (eh * 60 + em);
     });
-  } catch {
+  } catch (err) {
+    console.error('isRushHour error:', err);
     return false;
   }
 }

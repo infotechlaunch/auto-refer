@@ -4,7 +4,7 @@ import { Plus, Share2, Edit, Trash2, Calendar, DollarSign, Clock, Users, ToggleL
 import StatusBadge from '../components/shared/StatusBadge';
 import Modal from '../components/shared/Modal';
 import { referralProgramsApi } from '../lib/api';
-import { formatCurrency, formatDateTime } from '../lib/utils';
+import { formatCurrency, formatDateTime, formatReadable } from '../lib/utils';
 
 export default function ReferralProgramsPage() {
   const [showCreate, setShowCreate] = useState(false);
@@ -152,7 +152,7 @@ export default function ReferralProgramsPage() {
             }}>
               <div>
                 <h3 style={{ fontSize: '1.0625rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6 }}>
-                  {program.name}
+                  {formatReadable(program.name)}
                 </h3>
                 <StatusBadge status={program.active ? 'active' : 'disabled'} />
               </div>
@@ -362,7 +362,7 @@ export default function ReferralProgramsPage() {
       </Modal>
 
       {/* Edit Program Modal */}
-      <Modal isOpen={!!editProgram} onClose={() => setEditProgram(null)} title={`Edit · ${editProgram?.name}`} maxWidth={600}>
+      <Modal isOpen={!!editProgram} onClose={() => setEditProgram(null)} title={`Edit · ${formatReadable(editProgram?.name)}`} maxWidth={600}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
           <div className="input-group">
             <label>Program Name</label>

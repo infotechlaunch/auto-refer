@@ -13,7 +13,8 @@ import StatCard from '../components/shared/StatCard';
 import StatusBadge from '../components/shared/StatusBadge';
 import { useEffect, useState } from 'react';
 import { dashboardApi } from '../lib/api';
-import { formatCurrency, formatRelativeTime } from '../lib/utils';
+import { formatCurrency, formatRelativeTime, formatReadable } from '../lib/utils';
+import { useAuth } from '../context/AuthContext';
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload) return null;
@@ -38,6 +39,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function DashboardPage() {
+  const { user } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -126,7 +128,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Alerts / Notifications */}
-      {stats.totalFraudFlagged > 0 && (
+      {(user?.role === 'admin' || user?.role === 'super_admin') && stats.totalFraudFlagged > 0 && (
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -149,13 +151,13 @@ export default function DashboardPage() {
         </motion.div>
       )}
 
-      {/* ── Step 6: Voice Thank-You Stats Row ── */}
+      {/* ──: Voice Thank-You Stats Row ── */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
         style={{ marginBottom: 'var(--space-xl)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
           <Volume2 size={16} style={{ color: 'var(--brand-info)' }} />
           <h2 style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-secondary)', margin: 0 }}>
-            AI Voice Thank-You (Step 6)
+            AI Voice Thank-You 
           </h2>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-md)' }}>
@@ -183,12 +185,12 @@ export default function DashboardPage() {
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}
         style={{ marginBottom: 'var(--space-xl)' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-lg)' }}>
-          {/* Incentives (Step 7) */}
+          {/* Incentives */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
               <Gift size={16} style={{ color: 'var(--brand-warning)' }} />
               <h2 style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-secondary)', margin: 0 }}>
-                Incentives (Step 7)
+                Incentives
               </h2>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
@@ -205,12 +207,12 @@ export default function DashboardPage() {
               ))}
             </div>
           </div>
-          {/* Referral Rewards (Step 8) */}
+          {/* Referral Rewards */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
               <DollarSign size={16} style={{ color: 'var(--brand-success)' }} />
               <h2 style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-secondary)', margin: 0 }}>
-                Referral Rewards (Step 8)
+                Referral Rewards 
               </h2>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
@@ -348,7 +350,7 @@ export default function DashboardPage() {
               >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
-                    {event.referredBusinessId.replace('b_', '').replace(/_/g, ' ')}
+                    {formatReadable(event.referredBusinessId)}
                   </span>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                     {formatRelativeTime(event.eventTs)}
@@ -407,10 +409,10 @@ export default function DashboardPage() {
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {ev.played ? `Played (${ev.scriptVariant?.replace('_', ' ') || 'standard'})` : `Skipped — ${ev.skipReason || 'no match'}`}
+                    {ev.played ? `Played (${formatReadable(ev.scriptVariant) || 'standard'})` : `Skipped — ${formatReadable(ev.skipReason) || 'no match'}`}
                   </div>
                   <div style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>
-                    {ev.campaignName} · {formatRelativeTime(ev.callTs)}
+                    {formatReadable(ev.campaignName)} · {formatRelativeTime(ev.callTs)}
                   </div>
                 </div>
               </div>
@@ -419,67 +421,69 @@ export default function DashboardPage() {
         </motion.div>
 
         {/* Fraud Alerts */}
-        <motion.div
-          className="card"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          style={{ padding: 0, overflow: 'hidden' }}
-        >
-          <div style={{
-            padding: '16px 20px',
-            borderBottom: '1px solid var(--border-subtle)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}>
-            <h3 style={{ fontSize: '0.9375rem', fontWeight: 600 }}>
-              <Shield size={16} style={{ marginRight: 8, verticalAlign: 'middle', color: 'var(--text-danger)' }} />
-              Fraud Alerts
-            </h3>
-            <span className="badge badge-danger">{fraudAlerts.filter(f => !f.resolved).length} open</span>
-          </div>
-          <div>
-            {fraudAlerts.filter(f => !f.resolved).length === 0 ? (
-              <div style={{ padding: '24px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>No active fraud alerts</div>
-            ) : fraudAlerts.filter(f => !f.resolved).map((item) => (
-              <div
-                key={item.signalId}
-                style={{
-                  padding: '14px 20px',
-                  borderBottom: '1px solid var(--border-subtle)',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                    {item.referredName}
-                  </span>
-                  <span style={{
-                    fontSize: '0.8125rem',
-                    fontWeight: 700,
-                    color: item.totalScore >= 90 ? 'var(--text-danger)' : 'var(--text-warning)',
-                  }}>
-                    Score: {item.totalScore}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  {item.flags.map((f, i) => (
-                    <span
-                      key={i}
-                      className={`badge ${item.totalScore >= 90 ? 'badge-danger' : 'badge-warning'}`}
-                      style={{ fontSize: '0.6875rem' }}
-                    >
-                      {f.type.replace(/_/g, ' ')}
+        {(user?.role === 'admin' || user?.role === 'super_admin') && (
+          <motion.div
+            className="card"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+            style={{ padding: 0, overflow: 'hidden' }}
+          >
+            <div style={{
+              padding: '16px 20px',
+              borderBottom: '1px solid var(--border-subtle)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+              <h3 style={{ fontSize: '0.9375rem', fontWeight: 600 }}>
+                <Shield size={16} style={{ marginRight: 8, verticalAlign: 'middle', color: 'var(--text-danger)' }} />
+                Fraud Alerts
+              </h3>
+              <span className="badge badge-danger">{fraudAlerts.filter(f => !f.resolved).length} open</span>
+            </div>
+            <div>
+              {fraudAlerts.filter(f => !f.resolved).length === 0 ? (
+                <div style={{ padding: '24px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>No active fraud alerts</div>
+              ) : fraudAlerts.filter(f => !f.resolved).map((item) => (
+                <div
+                  key={item.signalId}
+                  style={{
+                    padding: '14px 20px',
+                    borderBottom: '1px solid var(--border-subtle)',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      {item.referredName}
                     </span>
-                  ))}
+                    <span style={{
+                      fontSize: '0.8125rem',
+                      fontWeight: 700,
+                      color: item.totalScore >= 90 ? 'var(--text-danger)' : 'var(--text-warning)',
+                    }}>
+                      Score: {item.totalScore}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {item.flags.map((f, i) => (
+                      <span
+                        key={i}
+                        className={`badge ${item.totalScore >= 90 ? 'badge-danger' : 'badge-warning'}`}
+                        style={{ fontSize: '0.6875rem' }}
+                      >
+                        {formatReadable(f.type)}
+                      </span>
+                    ))}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 6 }}>
+                    Referrer: {item.referrerName} · {formatRelativeTime(item.createdAt)}
+                  </div>
                 </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 6 }}>
-                  Referrer: {item.referrerName} · {formatRelativeTime(item.createdAt)}
-                </div>
-              </div>
-            ))}
-          </div>
-        </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
       </div>
     </div>
   );

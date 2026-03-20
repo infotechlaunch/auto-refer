@@ -1,5 +1,5 @@
 const express = require('express');
-const { GoogleGenAI } = require('@google/genai');
+const { OpenAI } = require('openai');
 
 const router = express.Router();
 
@@ -136,28 +136,32 @@ router.post('/', async (req, res, next) => {
   try {
     const { messages } = req.body; // Expecting { role: "user"|"model", parts: [{ text: "..." }] }
 
-    if (!process.env.GEMINI_API_KEY) {
+    if (!process.env.OPENAI_API_KEY) {
       return res.json({
         success: true,
-        text: "I'm offline because GEMINI_API_KEY is not set in the server environment. Please configure it to chat with me!",
+        text: "I'm offline because OPENAI_API_KEY is not set in the server environment. Please configure it to chat with me!",
       });
     }
 
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     
-    // We get messages in @google/genai format.
-    // The previous messages go into `contents`, and we need to pass systemInstruction.
-    const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
-      contents: messages,
-      config: {
-        systemInstruction: SYSTEM_PROMPT,
-      },
+    // Map from frontend format { role: "user"|"model", parts: [{ text: "..." }] } to OpenAI format
+    const mappedMessages = messages.map(m => ({
+      role: m.role === 'model' ? 'assistant' : m.role,
+      content: m.parts[0].text || ''
+    }));
+
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        ...mappedMessages
+      ],
     });
 
     res.json({
       success: true,
-      text: response.text,
+      text: response.choices[0].message.content,
     });
   } catch (err) {
     console.error('AI Chat Error:', err);

@@ -26,6 +26,8 @@ const publicRoutes = require('./routes/public');
 const chatRoutes = require('./routes/chat');
 const voiceThanksRoutes = require('./routes/voiceThanks');
 const incentivesRoutes = require('./routes/incentives');
+const settingsRoutes = require('./routes/settings');
+const aiEngineRoutes = require('./routes/aiEngine');
 
 // ═══════════════════════════════════════════════
 // Initialize Express
@@ -85,6 +87,8 @@ app.use('/api/public', publicRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/voice-thanks', voiceThanksRoutes);
 app.use('/api/incentives', incentivesRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/ai-engine', aiEngineRoutes);
 
 // ═══════════════════════════════════════════════
 // Error Handling
@@ -137,6 +141,9 @@ async function startServer() {
       console.log('   GET    /api/incentives');
       console.log('   POST   /api/incentives');
       console.log('   POST   /api/referral-events/process-reward');
+      console.log('   POST   /api/ai-engine/generate');
+      console.log('   GET    /api/ai-engine/suggestions');
+      console.log('   POST   /api/ai-engine/enhance');
       console.log('');
       console.log('🔑 Default Credentials:');
       console.log('   Admin:  admin@itl.com / password123');

@@ -10,7 +10,7 @@ import CopyButton from '../components/shared/CopyButton';
 import Modal from '../components/shared/Modal';
 import EmptyState from '../components/shared/EmptyState';
 import { referralLinksApi, referralProgramsApi } from '../lib/api';
-import { formatDateTime } from '../lib/utils';
+import { formatDateTime, formatReadable } from '../lib/utils';
 
 const REFERRER_TYPES = [
   { value: 'customer',    label: 'Customer',    color: 'badge-info' },
@@ -77,7 +77,7 @@ export default function ReferralLinksPage() {
     expired: referralLinks.filter(l => l.status === 'expired').length,
   }), [referralLinks]);
 
-  const getProgramName = id => referralPrograms.find(p => p.referralProgramId === id)?.name || 'Unknown Program';
+  const getProgramName = id => formatReadable(referralPrograms.find(p => p.referralProgramId === id)?.name) || 'Unknown Program';
   const getReferrerBadgeColor = type => REFERRER_TYPES.find(t => t.value === type)?.color || 'badge-neutral';
 
   // ── Create ──
@@ -241,7 +241,7 @@ export default function ReferralLinksPage() {
         </div>
         <select className="input" style={{ width: 200, height: 36, fontSize: '0.875rem' }} value={filterProgram} onChange={e => setFilterProgram(e.target.value)}>
           <option value="">All Programs</option>
-          {referralPrograms.map(p => <option key={p.referralProgramId} value={p.referralProgramId}>{p.name}</option>)}
+          {referralPrograms.map(p => <option key={p.referralProgramId} value={p.referralProgramId}>{formatReadable(p.name)}</option>)}
         </select>
         <select className="input" style={{ width: 140, height: 36, fontSize: '0.875rem' }} value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
           <option value="">All Statuses</option>
@@ -437,7 +437,7 @@ export default function ReferralLinksPage() {
               onChange={e => setFormData({ ...formData, referralProgramId: e.target.value })}>
               <option value="">Select a program…</option>
               {referralPrograms.map(p => (
-                <option key={p.referralProgramId} value={p.referralProgramId}>{p.name}</option>
+                <option key={p.referralProgramId} value={p.referralProgramId}>{formatReadable(p.name)}</option>
               ))}
             </select>
             {referralPrograms.length === 0 && (

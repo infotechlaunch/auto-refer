@@ -78,6 +78,69 @@
   --header-height: 64px;
 }
 
+/* ─── Light Theme Overrides ─── */
+[data-theme="light"] {
+  /* Surfaces */
+  --bg-root: #f0f2f8;
+  --bg-surface: #ffffff;
+  --bg-surface-raised: #f8f9fc;
+  --bg-surface-overlay: #eef0f6;
+  --bg-hover: rgba(99, 102, 241, 0.06);
+  --bg-active: rgba(99, 102, 241, 0.1);
+
+  /* Borders */
+  --border-subtle: rgba(0, 0, 0, 0.07);
+  --border-default: rgba(0, 0, 0, 0.12);
+  --border-strong: rgba(0, 0, 0, 0.18);
+  --border-brand: rgba(99, 102, 241, 0.35);
+
+  /* Text */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --text-inverse: #f1f5f9;
+  --text-brand: #6366f1;
+  --text-success: #059669;
+  --text-warning: #d97706;
+  --text-danger: #dc2626;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.12);
+}
+
+[data-theme="light"] body {
+  background-color: var(--bg-root);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .glass {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--border-subtle);
+}
+
+[data-theme="light"] .glass-raised {
+  background: rgba(248, 249, 252, 0.9);
+  border: 1px solid var(--border-default);
+}
+
+[data-theme="light"] header {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* ─── Reset & Base ─── */
 *,
 *::before,

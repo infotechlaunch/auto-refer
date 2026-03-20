@@ -9,7 +9,7 @@ import StatusBadge from '../components/shared/StatusBadge';
 import EmptyState from '../components/shared/EmptyState';
 import Modal from '../components/shared/Modal';
 import { incentivesApi, campaignsApi } from '../lib/api';
-import { formatDateTime } from '../lib/utils';
+import { formatDateTime, formatReadable } from '../lib/utils';
 
 const TYPE_META = {
   percent: { icon: Percent,    label: 'Percent Off',  color: 'badge-info',    eg: '10' },
@@ -32,8 +32,8 @@ const STATUS_COLOR = {
 };
 
 const EMPTY_FORM = {
-  campaignId: '', customerName: '', incentiveType: 'percent',
-  incentiveValue: '', sendMethod: 'manual', notes: '',
+  campaignId: '', customerName: '', customerPhone: '', customerEmail: '',
+  incentiveType: 'percent', incentiveValue: '', sendMethod: 'manual', notes: '',
 };
 
 export default function IncentivesPage() {
@@ -230,7 +230,7 @@ export default function IncentivesPage() {
         </select>
         <select className="input" style={{ width: 200, height: 36, fontSize: '0.875rem' }} value={filterCampaign} onChange={e => setFilterCampaign(e.target.value)}>
           <option value="">All Campaigns</option>
-          {campaigns.map(c => <option key={c.campaignId} value={c.campaignId}>{c.name}</option>)}
+          {campaigns.map(c => <option key={c.campaignId} value={c.campaignId}>{formatReadable(c.name)}</option>)}
         </select>
         {(search || filterStatus || filterCampaign) && (
           <button className="btn btn-ghost btn-sm" style={{ display: 'flex', alignItems: 'center', gap: 4 }}
@@ -293,7 +293,12 @@ export default function IncentivesPage() {
                     </div>
                     <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
                       {inc.customerName ? <><strong style={{ color: 'var(--text-secondary)' }}>{inc.customerName}</strong> · </> : ''}
-                      {inc.campaignName || 'No campaign'} · Created {formatDateTime(inc.createdAt)}
+                      {inc.customerPhone || inc.customerEmail ? (
+                        <span style={{ color: 'var(--text-brand)', fontWeight: 500 }}>
+                          {inc.customerPhone || inc.customerEmail} · 
+                        </span>
+                      ) : null}
+                      {formatReadable(inc.campaignName) || 'No campaign'} · Created {formatDateTime(inc.createdAt)}
                     </div>
                     {inc.notes && (
                       <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: 4 }}>{inc.notes}</div>
@@ -345,7 +350,7 @@ export default function IncentivesPage() {
               <option value="">Select a campaign…</option>
               {campaigns.map(c => (
                 <option key={c.campaignId} value={c.campaignId}>
-                  {c.name}{!c.enableIncentives ? ' (incentives disabled)' : ''}
+                  {formatReadable(c.name)}{!c.enableIncentives ? ' (incentives disabled)' : ''}
                 </option>
               ))}
             </select>
@@ -362,7 +367,7 @@ export default function IncentivesPage() {
                 }}>
                   <AlertCircle size={15} style={{ color: '#f87171', flexShrink: 0 }} />
                   <span style={{ flex: 1, fontSize: '0.8125rem', color: '#f87171' }}>
-                    Incentives are disabled for <strong>{selectedCampaign.name}</strong>.
+                    Incentives are disabled for <strong>{formatReadable(selectedCampaign.name)}</strong>.
                     Enable them to proceed.
                   </span>
                   <button
@@ -390,6 +395,21 @@ export default function IncentivesPage() {
             <input className="input" placeholder="e.g. Jane Smith"
               value={formData.customerName}
               onChange={e => setFormData({ ...formData, customerName: e.target.value })} />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)' }}>
+            <div className="input-group">
+              <label>Customer Phone</label>
+              <input className="input" placeholder="e.g. +1234567890"
+                value={formData.customerPhone}
+                onChange={e => setFormData({ ...formData, customerPhone: e.target.value })} />
+            </div>
+            <div className="input-group">
+              <label>Customer Email</label>
+              <input className="input" placeholder="e.g. jane@example.com"
+                value={formData.customerEmail}
+                onChange={e => setFormData({ ...formData, customerEmail: e.target.value })} />
+            </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)' }}>

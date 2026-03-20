@@ -4,7 +4,7 @@
  */
 
 // In development: uses http://localhost:3000/api
-// In production: set VITE_API_URL in frontend/.env.production
+// In production: uses https://auto-refer.onrender.com/api (set via VITE_API_URL)
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 function getToken() {
@@ -176,6 +176,21 @@ export const incentivesApi = {
 export const referralRewardsApi = {
   list:           (params) => api.get(`/referral-events/rewards${params ? '?' + new URLSearchParams(params) : ''}`),
   processReward:  (eventId) => api.post('/referral-events/process-reward', { eventId }),
+};
+
+// Settings API
+export const settingsApi = {
+  get:                  () => api.get('/settings'),
+  update:               (data) => api.put('/settings', data),
+  freezeWallets:        () => api.post('/settings/freeze-wallets'),
+  purgeExpiredIntents:  () => api.post('/settings/purge-expired-intents'),
+};
+
+// AI Engine API
+export const aiEngineApi = {
+  generate:     (prompt) => api.post('/ai-engine/generate', { prompt }),
+  suggestions:  () => api.get('/ai-engine/suggestions'),
+  enhance:      (prompt) => api.post('/ai-engine/enhance', { prompt }),
 };
 
 export default api;

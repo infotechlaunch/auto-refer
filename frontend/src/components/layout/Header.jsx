@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Bell, Search, ChevronDown, LogOut, Settings } from 'lucide-react';
+import { Bell, Search, ChevronDown, LogOut, Settings, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const routeTitles = {
@@ -27,6 +28,8 @@ export default function Header() {
   
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === 'dark';
   
   const userMenuRef = useRef(null);
   const notifRef = useRef(null);
@@ -91,56 +94,104 @@ export default function Header() {
           <Search size={18} />
         </button>
 
-        {/* Notifications */}
-        <div style={{ position: 'relative' }} ref={notifRef}>
-          <button
-            className="btn btn-ghost btn-icon"
-            title="Notifications"
-            onClick={() => setIsNotifOpen(!isNotifOpen)}
-          >
-            <Bell size={18} />
-            <span style={{
-              position: 'absolute',
-              top: 4,
-              right: 4,
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              background: 'var(--brand-danger)',
-              border: '2px solid var(--bg-root)',
-            }} />
-          </button>
-          
-          <AnimatePresence>
-            {isNotifOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+        {/* Dark / Light Toggle */}
+        <motion.button
+          className="btn btn-ghost btn-icon"
+          onClick={toggleTheme}
+          title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          whileTap={{ scale: 0.88 }}
+          style={{
+            position: 'relative',
+            overflow: 'hidden',
+            background: isDark
+              ? 'rgba(99,102,241,0.12)'
+              : 'rgba(245,158,11,0.12)',
+            border: isDark
+              ? '1px solid rgba(99,102,241,0.25)'
+              : '1px solid rgba(245,158,11,0.3)',
+            color: isDark ? 'var(--brand-primary-light)' : '#d97706',
+            transition: 'all 0.25s ease',
+          }}
+        >
+          <AnimatePresence mode="wait" initial={false}>
+            {isDark ? (
+              <motion.span
+                key="sun"
+                initial={{ opacity: 0, rotate: -45, scale: 0.7 }}
+                animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                exit={{ opacity: 0, rotate: 45, scale: 0.7 }}
                 transition={{ duration: 0.2 }}
-                style={{
-                  position: 'absolute',
-                  top: 'calc(100% + 8px)',
-                  right: 0,
-                  width: 300,
-                  background: 'var(--bg-surface)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-md)',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
-                  overflow: 'hidden',
-                  zIndex: 50,
-                }}
+                style={{ display: 'flex', alignItems: 'center' }}
               >
-                <div style={{ padding: '16px', borderBottom: '1px solid var(--border-subtle)' }}>
-                  <h3 style={{ fontSize: '0.875rem', fontWeight: 600, margin: 0 }}>Notifications</h3>
-                </div>
-                <div style={{ padding: '24px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-                  No new notifications right now.
-                </div>
-              </motion.div>
+                <Sun size={17} />
+              </motion.span>
+            ) : (
+              <motion.span
+                key="moon"
+                initial={{ opacity: 0, rotate: 45, scale: 0.7 }}
+                animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                exit={{ opacity: 0, rotate: -45, scale: 0.7 }}
+                transition={{ duration: 0.2 }}
+                style={{ display: 'flex', alignItems: 'center' }}
+              >
+                <Moon size={17} />
+              </motion.span>
             )}
           </AnimatePresence>
-        </div>
+        </motion.button>
+
+        {/* Notifications */}
+        {(user?.role === 'admin' || user?.role === 'super_admin') && (
+          <div style={{ position: 'relative' }} ref={notifRef}>
+            <button
+              className="btn btn-ghost btn-icon"
+              title="Notifications"
+              onClick={() => setIsNotifOpen(!isNotifOpen)}
+            >
+              <Bell size={18} />
+              <span style={{
+                position: 'absolute',
+                top: 4,
+                right: 4,
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                background: 'var(--brand-danger)',
+                border: '2px solid var(--bg-root)',
+              }} />
+            </button>
+            
+            <AnimatePresence>
+              {isNotifOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  style={{
+                    position: 'absolute',
+                    top: 'calc(100% + 8px)',
+                    right: 0,
+                    width: 300,
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 'var(--radius-md)',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+                    overflow: 'hidden',
+                    zIndex: 50,
+                  }}
+                >
+                  <div style={{ padding: '16px', borderBottom: '1px solid var(--border-subtle)' }}>
+                    <h3 style={{ fontSize: '0.875rem', fontWeight: 600, margin: 0 }}>Notifications</h3>
+                  </div>
+                  <div style={{ padding: '24px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+                    No new notifications right now.
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
 
         {/* Divider */}
         <div style={{

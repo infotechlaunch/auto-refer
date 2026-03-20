@@ -6,7 +6,7 @@ import StatusBadge from '../components/shared/StatusBadge';
 import CopyButton from '../components/shared/CopyButton';
 import Modal from '../components/shared/Modal';
 import { qrCodesApi, campaignsApi } from '../lib/api';
-import { formatDateTime } from '../lib/utils';
+import { formatDateTime, formatReadable } from '../lib/utils';
 
 const FIELD_DEFS = [
   { key: 'captureName',    label: 'Name',                      icon: User,        dbKey: 'capture_name' },
@@ -46,7 +46,7 @@ export default function QrCodesPage() {
 
   const getCampaignName = (campaignId) => {
     const c = campaigns.find(c => c.campaignId === campaignId);
-    return c?.name || campaignId;
+    return formatReadable(c?.name) || campaignId;
   };
 
   const handleGenerate = async () => {
@@ -407,7 +407,7 @@ export default function QrCodesPage() {
             >
               <option value="">Choose a campaign...</option>
               {campaigns.map(c => (
-                <option key={c.campaignId} value={c.campaignId}>{c.name}</option>
+                <option key={c.campaignId} value={c.campaignId}>{formatReadable(c.name)}</option>
               ))}
             </select>
           </div>

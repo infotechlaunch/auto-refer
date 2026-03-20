@@ -8,7 +8,7 @@ import StatusBadge from '../components/shared/StatusBadge';
 import EmptyState from '../components/shared/EmptyState';
 import Modal from '../components/shared/Modal';
 import { voiceThanksApi, campaignsApi } from '../lib/api';
-import { formatDateTime } from '../lib/utils';
+import { formatDateTime, formatReadable } from '../lib/utils';
 
 const SKIP_LABELS = {
   already_played: 'Already Played',
@@ -89,7 +89,7 @@ export default function VoiceThankYouPage() {
     }
   };
 
-  const getCampaignName = id => campaigns.find(c => c.campaignId === id)?.name || id || '—';
+  const getCampaignName = id => formatReadable(campaigns.find(c => c.campaignId === id)?.name) || id || '—';
 
   if (loading) return (
     <div className="page-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300 }}>
@@ -169,7 +169,7 @@ export default function VoiceThankYouPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <Volume2 size={14} style={{ color: variant === 'rush_hour' ? 'var(--brand-warning)' : 'var(--brand-primary)' }} />
                 <span style={{ fontWeight: 600, fontSize: '0.8125rem', textTransform: 'capitalize' }}>
-                  {variant.replace('_', ' ')}
+                  {formatReadable(variant)}
                 </span>
               </div>
               <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', margin: 0, fontStyle: 'italic' }}>
@@ -195,7 +195,7 @@ export default function VoiceThankYouPage() {
         </select>
         <select className="input" style={{ width: 200, height: 36, fontSize: '0.875rem' }} value={filterCampaign} onChange={e => setFilterCampaign(e.target.value)}>
           <option value="">All Campaigns</option>
-          {campaigns.map(c => <option key={c.campaignId} value={c.campaignId}>{c.name}</option>)}
+          {campaigns.map(c => <option key={c.campaignId} value={c.campaignId}>{formatReadable(c.name)}</option>)}
         </select>
         {(search || filterPlayed !== '' || filterCampaign) && (
           <button className="btn btn-ghost btn-sm" style={{ display: 'flex', alignItems: 'center', gap: 4 }}
@@ -245,7 +245,7 @@ export default function VoiceThankYouPage() {
                     </span>
                     {ev.played && ev.scriptVariant && (
                       <span className={`badge ${ev.scriptVariant === 'rush_hour' ? 'badge-warning' : 'badge-info'}`}>
-                        {ev.scriptVariant.replace('_', ' ')}
+                        {formatReadable(ev.scriptVariant)}
                       </span>
                     )}
                     {!ev.played && ev.skipReason && (
@@ -296,7 +296,7 @@ export default function VoiceThankYouPage() {
             <select className="input" value={simForm.campaignId}
               onChange={e => setSimForm({ ...simForm, campaignId: e.target.value })}>
               <option value="">Auto-detect from caller identity</option>
-              {campaigns.map(c => <option key={c.campaignId} value={c.campaignId}>{c.name}</option>)}
+              {campaigns.map(c => <option key={c.campaignId} value={c.campaignId}>{formatReadable(c.name)}</option>)}
             </select>
           </div>
 
@@ -317,7 +317,7 @@ export default function VoiceThankYouPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600, color: 'var(--brand-success)', marginBottom: 8 }}>
                     <PlayCircle size={16} /> Playing voice message
                     <span className={`badge ${simResult.variant === 'rush_hour' ? 'badge-warning' : 'badge-info'}`}>
-                      {simResult.variant?.replace('_', ' ')}
+                      {formatReadable(simResult.variant)}
                     </span>
                   </div>
                   <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', margin: 0, fontStyle: 'italic' }}>

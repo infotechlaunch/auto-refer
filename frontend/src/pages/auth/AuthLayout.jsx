@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useEffect, useRef } from 'react';
+import logo from '../../assets/main-logos/logo.svg';
 
 // Neural network canvas background for the left panel
 function NeuralBackground() {
@@ -94,24 +95,18 @@ function NeuralBackground() {
 }
 
 // AutoRefer Logo SVG
-function AutoReferLogo({ size = 36 }) {
+function AutoReferLogo({ size = 64 }) {
   return (
     <div
       style={{
         width: size,
         height: size,
-        background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-        borderRadius: 10,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        boxShadow: '0 4px 16px rgba(99, 102, 241, 0.3)',
       }}
     >
-      <svg width={size * 0.5} height={size * 0.5} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M22 2L11 13" />
-        <path d="M22 2L15 22L11 13L2 9L22 2Z" />
-      </svg>
+      <img src={logo} alt="AutoRefer Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
     </div>
   );
 }
@@ -141,7 +136,7 @@ function SplitLayout({ children, title, subtitle }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.5 }}
           >
-            <AutoReferLogo size={40} />
+            <AutoReferLogo size={64} />
             <span className="auth-logo-text">AutoRefer™</span>
           </motion.div>
 

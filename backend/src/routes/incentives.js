@@ -15,6 +15,7 @@ const { v4: uuidv4 } = require('uuid');
 const { getSql }     = require('../db/init');
 const { authenticate, authorize } = require('../middleware/auth');
 const { logAudit }   = require('../utils/auditLogger');
+const { sendIncentiveMessage } = require('../services/messagingService');
 
 const router = express.Router();
 
@@ -46,6 +47,8 @@ router.get('/', authenticate, async (req, res, next) => {
       enableIncentives: !!row.enable_incentives,
       reviewIntentId:  row.review_intent_id,
       customerName:    row.customer_name,
+      customerPhone:   row.customer_phone,
+      customerEmail:   row.customer_email,
       incentiveType:   row.incentive_type,
       incentiveValue:  row.incentive_value,
       sendMethod:      row.send_method,
@@ -94,6 +97,8 @@ router.post('/', authenticate, async (req, res, next) => {
       campaignId,
       reviewIntentId,
       customerName,
+      customerPhone,
+      customerEmail,
       incentiveType,
       incentiveValue,
       sendMethod = 'manual',
@@ -128,13 +133,31 @@ router.post('/', authenticate, async (req, res, next) => {
 
     const incentiveId = uuidv4();
 
+    // ── Auto-fill contact from review_intent if available ──────
+    let finalPhone = customerPhone;
+    let finalEmail = customerEmail;
+
+    if (reviewIntentId && (!finalPhone && !finalEmail)) {
+      const intents = await sql`
+        SELECT customer_identity_ref FROM review_intents
+        WHERE review_intent_id = ${reviewIntentId}
+      `;
+      if (intents.length && intents[0].customer_identity_ref) {
+        const ref = intents[0].customer_identity_ref;
+        if (ref.includes('@')) finalEmail = ref;
+        else if (ref.match(/^[\d+]{10,15}$/)) finalPhone = ref;
+      }
+    }
+
     await sql`
       INSERT INTO incentives
         (incentive_id, tenant_id, campaign_id, review_intent_id, customer_name,
-         incentive_type, incentive_value, send_method, notes)
+         customer_phone, customer_email, incentive_type, incentive_value, 
+         send_method, notes)
       VALUES
         (${incentiveId}, ${req.user.tenant_id}, ${campaignId || null},
          ${reviewIntentId || null}, ${customerName || null},
+         ${finalPhone || null}, ${finalEmail || null},
          ${incentiveType}, ${incentiveValue}, ${sendMethod}, ${notes || null})
     `;
 
@@ -201,6 +224,17 @@ router.put('/:id/send', authenticate, async (req, res, next) => {
     const { sendMethod } = req.body;
     const method = sendMethod || inc.send_method;
 
+    // ── Actually Send the Message ────────────────────────────
+    try {
+      await sendIncentiveMessage(req.params.id, method, req.user.tenant_id);
+    } catch (msgErr) {
+      // If delivery fails, we return error but don't mark as sent in DB
+      return res.status(400).json({
+        success: false,
+        error: `Delivery failed: ${msgErr.message}`,
+      });
+    }
+
     await sql`
       UPDATE incentives
       SET status = 'sent', sent_at = NOW(), send_method = ${method}, updated_at = NOW()
@@ -258,7 +292,7 @@ router.put('/:id/redeem', authenticate, async (req, res, next) => {
 // ─────────────────────────────────────────────────────────────────
 // PUT /api/incentives/:id/expire — Mark as expired
 // ─────────────────────────────────────────────────────────────────
-router.put('/:id/expire', authenticate, authorize('admin', 'super_admin'), async (req, res, next) => {
+router.put('/:id/expire', authenticate, async (req, res, next) => {
   try {
     const sql = getSql();
     const existing = await sql`
@@ -285,7 +319,7 @@ router.put('/:id/expire', authenticate, authorize('admin', 'super_admin'), async
 // ─────────────────────────────────────────────────────────────────
 // DELETE /api/incentives/:id
 // ─────────────────────────────────────────────────────────────────
-router.delete('/:id', authenticate, authorize('admin', 'super_admin'), async (req, res, next) => {
+router.delete('/:id', authenticate, async (req, res, next) => {
   try {
     const sql = getSql();
     const existing = await sql`
