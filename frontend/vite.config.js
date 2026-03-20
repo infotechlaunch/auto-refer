@@ -8,9 +8,20 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
-  // Build output goes to dist/ — upload this folder's contents to Bluehost public_html/
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    sourcemap: false,
+    minify: 'esbuild', // Faster and built-in
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-ui': ['framer-motion', 'lucide-react', 'clsx', 'tailwind-merge'],
+          'vendor-charts': ['recharts'],
+          'vendor-utils': ['zod', 'react-hook-form', '@hookform/resolvers'],
+        },
+      },
+    },
   },
 })

@@ -4,6 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const helmet = require('helmet');
+const compression = require('compression');
 
 const { initializeDatabase } = require('./db/init');
 const { seedDatabase } = require('./db/seed');
@@ -38,6 +39,7 @@ const PORT = process.env.PORT || 3000;
 // ═══════════════════════════════════════════════
 // Middleware
 // ═══════════════════════════════════════════════
+app.use(compression());
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({
   origin: [
