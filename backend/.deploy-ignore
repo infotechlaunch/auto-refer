@@ -1,0 +1,9 @@
+﻿node_modules
+.env
+.git
+.serverless
+*.zip
+npm-debug.log
+.DS_Store
+build-*.ps1
+.deploy-ignore

@@ -5,10 +5,12 @@ const cors = require('cors');
 const morgan = require('morgan');
 const helmet = require('helmet');
 const compression = require('compression');
+// serverless-http moved to index.js
 
 const { initializeDatabase } = require('./db/init');
 const { seedDatabase } = require('./db/seed');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
+
 
 // Route imports
 const authRoutes = require('./routes/auth');
@@ -34,7 +36,7 @@ const aiEngineRoutes = require('./routes/aiEngine');
 // Initialize Express
 // ═══════════════════════════════════════════════
 const app = express();
-const PORT = process.env.PORT || 3000;
+// const PORT = process.env.PORT || 3000;
 
 // ═══════════════════════════════════════════════
 // Middleware
@@ -57,8 +59,12 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // ═══════════════════════════════════════════════
-// Health Check
+// Root & Health Check
 // ═══════════════════════════════════════════════
+app.get('/', (req, res) => {
+  res.status(200).send('ITL AutoPilot™ Backend running');
+});
+
 app.get('/api/health', (req, res) => {
   res.json({
     success: true,
@@ -99,67 +105,50 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 // ═══════════════════════════════════════════════
-// Start Server
+// Start Server / Base Initialization
 // ═══════════════════════════════════════════════
-async function startServer() {
+let isInitialized = false;
+
+async function ensureInitialized() {
+  if (isInitialized) return;
   try {
     // Initialize database (create tables)
     await initializeDatabase();
     console.log('📦 Database ready (PostgreSQL)');
 
-    // Seed with sample data
+    // Seed with sample data (in production, usually handled by separate script, 
+    // but keeping it here as per current logic)
     await seedDatabase();
-
-    // Start Express
-    app.listen(PORT, () => {
-      console.log('');
-      console.log('╔══════════════════════════════════════════════╗');
-      console.log('║   🚀 ITL AutoPilot™ Backend v2.0            ║');
-      console.log(`║   📡 Server running on port ${PORT}             ║`);
-      console.log(`║   🌐 API: http://localhost:${PORT}/api          ║`);
-      console.log('║   🗄️  Database: PostgreSQL                    ║');
-      console.log('║   📋 Health: /api/health                     ║');
-      console.log('╚══════════════════════════════════════════════╝');
-      console.log('');
-      console.log('📌 Available API Routes:');
-      console.log('   POST   /api/auth/register');
-      console.log('   POST   /api/auth/login');
-      console.log('   GET    /api/auth/me');
-      console.log('   GET    /api/dashboard');
-      console.log('   GET    /api/campaigns');
-      console.log('   POST   /api/campaigns');
-      console.log('   GET    /api/qr-codes');
-      console.log('   POST   /api/qr-codes');
-      console.log('   GET    /api/review-intents');
-      console.log('   GET    /api/referral-programs');
-      console.log('   GET    /api/referral-links');
-      console.log('   GET    /api/referral-events');
-      console.log('   GET    /api/wallets');
-      console.log('   GET    /api/payouts');
-      console.log('   GET    /api/fraud-queue');
-      console.log('   GET    /api/audit-logs');
-      console.log('   GET    /api/voice-thanks');
-      console.log('   POST   /api/voice-thanks/call');
-      console.log('   GET    /api/incentives');
-      console.log('   POST   /api/incentives');
-      console.log('   POST   /api/referral-events/process-reward');
-      console.log('   POST   /api/ai-engine/generate');
-      console.log('   GET    /api/ai-engine/suggestions');
-      console.log('   POST   /api/ai-engine/enhance');
-      console.log('');
-      console.log('🔑 Default Credentials:');
-      console.log('   Admin:  admin@itl.com / password123');
-      console.log('   User:   user@demo.com / password123');
-      console.log('');
-    });
+    isInitialized = true;
   } catch (err) {
-    console.error('❌ Failed to start server:', err);
-    process.exit(1);
+    console.error('❌ Failed to initialize database:', err);
+    // Don't throw, let future requests try again or let them fail gracefully
   }
 }
 
-startServer();
+// Export for Lambda Entry Point and local usage
+module.exports = { app, ensureInitialized };
 
-module.exports = app;
+// ═══════════════════════════════════════════════
+// Server Start (AWS EB & Local)
+// ═══════════════════════════════════════════════
+if (require.main === module) {
+  const PORT = process.env.PORT || 8080;
 
-// Trigger nodemon restart
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log('');
+    console.log('╔══════════════════════════════════════════════╗');
+    console.log('║   🚀 ITL AutoPilot™ Backend v2.0             ║');
+    console.log(`║   📡 Server running on port ${PORT}          ║`);
+    console.log(`║   🌐 API: http://localhost:${PORT}/api       ║`);
+    console.log('║   🗄️  Database: PostgreSQL                    ║');
+    console.log('║   📋 Health: /api/health                     ║');
+    console.log('╚══════════════════════════════════════════════╝');
+    console.log('');
+  });
+
+  // Trigger async initialization without blocking server bind.
+  ensureInitialized().catch(err => {
+    console.error('SERVER_START_ERROR:', err);
+  });
+}

@@ -1,0 +1,36 @@
+service: auto-refer-backend
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: ap-south-1 # You can change this to your preferred region
+  memorySize: 512
+  timeout: 30
+  environment:
+    # Environment variables from your .env file
+    # Ensure these match what's in your .env or are set in AWS Systems Manager
+    NODE_ENV: production
+    PORT: 8080
+    DATABASE_URL: ${env:DATABASE_URL, ''}
+    JWT_SECRET: ${env:JWT_SECRET, ''}
+    OPENAI_API_KEY: ${env:OPENAI_API_KEY, ''}
+    GEMINI_API_KEY: ${env:GEMINI_API_KEY, ''}
+    FRONTEND_URL: ${env:FRONTEND_URL, ''}
+    # Add other environment variables as needed
+
+functions:
+  api:
+    handler: index.handler
+    events:
+      - httpApi:
+          path: /{proxy+}
+          method: '*'
+
+plugins:
+  - serverless-offline # Useful for local testing
+
+custom:
+  serverless-offline:
+    httpPort: 8080

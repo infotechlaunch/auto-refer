@@ -1,0 +1,6 @@
+node_modules/
+.env
+.git/
+.serverless/
+npm-debug.log
+.DS_Store
