@@ -105,7 +105,7 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 // ═══════════════════════════════════════════════
-// Start Server / Base Initialization
+// Start Server / Base Initializatio
 // ═══════════════════════════════════════════════
 let isInitialized = false;
 
