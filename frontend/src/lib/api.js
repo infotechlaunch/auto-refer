@@ -4,7 +4,7 @@
  */
 
 // In development: uses http://localhost:3000/api
-// In production: uses https://auto-refer.onrender.com/api (set via VITE_API_URL)
+// In production: uses http://autorefer-01-env.eba-pinnrhmu.ap-south-1.elasticbeanstalk.com/api (set via VITE_API_URL)
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 function getToken() {
